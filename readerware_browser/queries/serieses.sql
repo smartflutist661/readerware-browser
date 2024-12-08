@@ -3,7 +3,7 @@ WITH series_aggs as (
         sum(cast(pages as integer)) as page_count,
         series_list.rowkey as series_id,
         max(readerware.series_number) as series_length,
-        array_agg(distinct readerware.user2) as subserieses,
+        array_agg(distinct readerware.user2) FILTER (WHERE readerware.user2 is not null) as subserieses,
         count(distinct readerware.rowkey) as book_count
     FROM readerware
     join series_list on series_list.rowkey = readerware.series

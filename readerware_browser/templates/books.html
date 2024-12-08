@@ -1,10 +1,9 @@
-{% extends "base.html" %}
+{% extends "table.html" %}
 
-{% block content %}
+{% block table %}
 <table id="books">
 	<thead>
 		<tr>
-			<th>Book ID</th>
 			<th data-dt-order="disable">Cover</th>
 			<th>Title</th>
 			<th>Author</th>
@@ -27,6 +26,9 @@
 	$(document).ready(function () {
 		var table = $('#books').DataTable(
 			{
+				serverSide: true,
+				lengthChange: true,
+				responsive: true,
 				ajax: {
 					url: "api/books",
 					data: {
@@ -34,29 +36,40 @@
 						series_id: "{{ series_id }}",
 					},
 				},
-				serverSide: true,
-				lengthChange: true,
 				columns: [
-					{data: "book_id", visible: false, searchable: false, orderable: false},
 					{
-						data: "cover", orderable: false, searchable: false, render: function (data, _, __, ___) {
-							var cell = data ? "<img src=data:image/png;base64," + data.replace(/[|\n\r]/gm, "") + " width=100px />" : "No Cover Available"
-							return cell
+						data: "cover",
+						orderable: false,
+						searchable: false,
+						render: function (_, __, row, ___) {
+							return row.cover ?
+								"<a href={{ url_for('books') }}?id=" + row.book_id + "><img src=data:image/png;base64," + row.cover.replace(/[|\n\r]/gm, "") + " width=100px /></a>"
+								: "No Cover Available"
 						}
 					},
-					{data: "title", searchBuilderType: "string"},
 					{
-						data: function (row, _, __, ___) {
+						data: "title",
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
+							return "<a href={{ url_for('books') }}?id=" + row.book_id + ">" + row.title + "</a>"
+						}
+					},
+					{
+						data: "author",
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
 							return "<a href={{ url_for('authors') }}?id=" + row.author_id + ">" + row.author + "</a>"
-						}, searchBuilderType: "string",
+						}
 					},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
 					{data: "genre", searchBuilderType: "string"},
 					{
-						data: function (row, _, __, ___) {
+						data: "series",
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
 							var cell = row.series ? "<a href={{ url_for('series') }}?id=" + row.series_id + ">" + row.series + "</a>" : null
 							return cell
-						}, searchBuilderType: "string",
+						}
 					},
 					{data: "series_number", searchBuilderType: "num"},
 					{data: "series_number_chron", searchBuilderType: "num"},
@@ -78,16 +91,14 @@
 				language: {
 					searchBuilder: {title: "<h3>Advanced Search</h3>"}
 				},
-				// Link row to book page
-				drawCallback: function (settings) {
-					$('#books tbody tr').click(function () {
-						var id = table.row(this).data().book_id
-						document.location.href = "{{ url_for('books') }}?id=" + id
-					})
-
-				}
 			}
 		);
+
+		table.on('responsive-resize', function (_, __, ____) {
+			$('tr').each(function () {$(this).find('td:visible:last').addClass('last-visible-td')});
+		});
 	});
+
+
 </script>
 {% endblock %}

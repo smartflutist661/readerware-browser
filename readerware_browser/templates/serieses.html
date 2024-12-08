@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "table.html" %}
 
-{% block content %}
+{% block table %}
 <table id="series">
 	<thead>
 		<tr>
@@ -29,16 +29,40 @@
 				lengthChange: true,
 				columns: [
 					{data: "series_id", visible: false, searchable: false, orderable: false},
-					{data: "series", searchBuilderType: "string"},
 					{
-						data: function (row, _, __, ___) {
+						data: "series",
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
+							return "<a href={{ url_for('series') }}?id=" + row.series_id + ">" + row.series + "</a>"
+						}
+					},
+					{
+						data: "author",
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
 							return "<a href={{ url_for('authors') }}?id=" + row.author_id + ">" + row.author + "</a>"
-						}, searchBuilderType: "string",
+						}
 					},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
 					{data: "genre", searchBuilderType: "string"},
 					{data: "series_length", searchBuilderType: "num"},
-					{data: "subserieses", searchBuilderType: "string"},
+					{
+						data: "subserieses",
+						orderable: false,
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
+							if (!row.subserieses || !row.subserieses[0]) {
+								return null;
+							}
+							console.log(row.subserieses)
+							var cell = "<ul>";
+							for (const subseries of row.subserieses) {
+								cell += "<li>" + subseries + "</li>";
+							}
+							cell += "</ul>"
+							return cell;
+						}
+					},
 					{data: "book_count", searchBuilderType: "num"},
 				],
 				order: {
@@ -56,16 +80,11 @@
 				language: {
 					searchBuilder: {title: "<h3>Advanced Search</h3>"}
 				},
-				// Link row to book page
-				drawCallback: function (settings) {
-					$('#series tbody tr').click(function () {
-						var id = table.row(this).data().series_id
-						document.location.href = '/series?id=' + id
-					})
-
-				}
 			}
 		);
+		table.on('responsive-resize', function (_, __, ____) {
+			$('tr').each(function () {$(this).find('td:visible:last').addClass('last-visible-td')});
+		});
 	});
 </script>
 {% endblock %}

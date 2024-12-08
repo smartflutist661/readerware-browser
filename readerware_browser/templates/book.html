@@ -1,8 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<img src="data:image/png;base64,{{ book['cover'] }}" />
-<h4>{{ book['title'] }} by <a href="{{ url_for('authors') }}?id={{ book['author_id'] }}">{{ book['author'] }}</a></h4>
-{% endblock %}
+<div class="book"><img src="data:image/png;base64,{{ book['cover'] }}" />
+	<hr />
+	<h4>{{ book['title'] }} by <a href="{{ url_for('authors') }}?id={{ book['author_id'] }}">{{ book['author'] }}</a>
+	</h4>
+	<h5>Book {{
+		book['series_number']|int
+		if book['series_number']|int == book['series_number']
+		else book['series_number']
+		}} of <a href="{{ url_for('series') }}?id={{ book['series_id'] }}">{{ book['series'] }}</a></h5>
 
-{% block scripts %}{% endblock %}
+	<h5>{% if book['series_number_chron'] is not none and book['series_number_chron'] >= 0 %}
+		Book {{ book['series_number_chron']|int }} of the internal chronology
+		{% endif %}</h5>
+	{{ book['description']|safe }}
+</div>
+{% endblock %}

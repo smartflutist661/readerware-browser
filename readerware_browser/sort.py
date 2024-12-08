@@ -13,7 +13,7 @@ SORT_COLS = (
     "subseries_number",
     "book_count",
     "series_count",
-    # TODO: Sort by author genres/series?
+    "series_length",
 )
 
 

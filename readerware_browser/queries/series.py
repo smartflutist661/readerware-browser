@@ -35,7 +35,7 @@ def get_serieses(request: Request, db_cursor: Cursor[dict[str, Any]]) -> list[Se
 
     query = get_series_query_base()
 
-    query_params: list[str | int] = []
+    query_params: list[str | int | float] = []
 
     search = build_search(request, VALID_COLUMNS)
     if isinstance(search, Response):

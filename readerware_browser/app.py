@@ -52,6 +52,12 @@ def books() -> str | Response:
     if book_res is None:
         return Response(f"Book with id {book_id} not found", 404)
 
+    book_res["description"] = (
+        "".join(f"<p>{line}</p>" for line in book_res["description"].split("\n"))
+        if book_res["description"] is not None
+        else ""
+    )
+
     return render_template(
         "book.html", title=f"{book_res['title']} - {book_res['author']}", book=book_res
     )

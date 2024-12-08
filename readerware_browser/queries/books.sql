@@ -27,7 +27,8 @@ WITH books AS (
         case
         	when readerware.user2 is null then null 
         	else cast(readerware.user3 as integer)
-        end as subseries_number
+        end as subseries_number,
+        product_info as description
     FROM readerware
     left join contributor as cont1 on cont1.rowkey = readerware.author
     left join thumb_images on thumb_images.row_id = readerware.rowkey

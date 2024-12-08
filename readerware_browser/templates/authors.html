@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "table.html" %}
 
-{% block content %}
+{% block table %}
 <table id="authors">
 	<thead>
 		<tr>
@@ -28,13 +28,22 @@
 				lengthChange: true,
 				columns: [
 					{data: "author_id", visible: false, searchable: false, orderable: false},
-					{data: "author", searchBuilderType: "string"},
+					{
+						data: "author",
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
+							return "<a href={{ url_for('authors') }}?id=" + row.author_id + ">" + row.author + "</a>"
+						}
+					},
 					{data: "book_count", searchable: false, searchBuilderType: "num"},
 					{data: "series_count", searchable: false, searchBuilderType: "num"},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
 					{
-						data: function (row, _, __, ___) {
-							if (!row.serieses) {
+						data: "serieses",
+						orderable: false,
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
+							if (!row.serieses || row.serieses.length === 0) {
 								return null;
 							}
 							var cell = "<ul>";
@@ -43,14 +52,15 @@
 							}
 							cell += "</ul>"
 							return cell;
-						},
-						orderable: false,
-						searchBuilderType: "string",
+						}
 					},
 					{
-						data: function (row, _, __, ___) {
+						data: "genres",
+						orderable: false,
+						searchBuilderType: "string",
+						render: function (_, __, row, ___) {
 							if (!row.genres) {
-								return null;
+								return null
 							}
 							var cell = "<ul>";
 							for (const genre of row.genres) {
@@ -58,9 +68,7 @@
 							}
 							cell += "</ul>"
 							return cell;
-						},
-						orderable: false,
-						searchBuilderType: "string",
+						}
 					},
 				],
 				order: {
@@ -78,16 +86,12 @@
 				language: {
 					searchBuilder: {title: "<h3>Advanced Search</h3>"}
 				},
-				// Link row to book page
-				drawCallback: function (settings) {
-					$('#authors tbody tr').click(function () {
-						var id = table.row(this).data().author_id
-						document.location.href = "{{ url_for('authors') }}?id=" + id
-					})
-
-				}
 			}
 		);
+
+		table.on('responsive-resize', function (_, __, ____) {
+			$('tr').each(function () {$(this).find('td:visible:last').addClass('last-visible-td')});
+		});
 	});
 </script>
 {% endblock %}

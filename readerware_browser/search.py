@@ -64,7 +64,7 @@ NUM_CONDITIONS = (
 def build_search(
     request: Request,
     valid_columns: Collection[str],
-) -> Optional[tuple[str, tuple[str | int, ...]] | Response]:
+) -> Optional[tuple[str, tuple[str | int | float, ...]] | Response]:
 
     basic_search_param = request.args.get("search[value]")
     do_basic_search = basic_search_param != "" and basic_search_param is not None
@@ -113,13 +113,23 @@ def process_criteria(
     request: Request,
     base_param: str,
     join_logic: Literal["AND", "OR"],
-) -> tuple[str, tuple[str | int, ...]]:
+) -> tuple[str, tuple[str | int | float, ...]]:
     query_terms = []
-    query_params: list[str | int] = []
+    query_params: list[str | int | float] = []
 
-    criterion_val: Optional[str | int]
+    criterion_val: Optional[str | int | float]
 
     for criterion_num in range(10):
+
+        # TODO: Fix this fix
+        # One or more of these are persisting between loops and causing errors
+        criterion_type = None
+        criterion_col = None
+        criterion_cond = None
+        criterion_val = None
+        criterion_val_1 = None
+        criterion_val_2 = None
+
         nested_logic = request.args.get(f"{base_param}[{criterion_num}][logic]")
         if nested_logic is not None:
             if nested_logic in ("AND", "OR"):
@@ -148,10 +158,9 @@ def process_criteria(
             ):
                 if criterion_cond in ("=", "!=", "<", "<=", ">", ">="):
                     if criterion_type == "num":
-                        if criterion_col in ("page_count"):
-                            criterion_val = request.args.get(
-                                f"{base_param}[{criterion_num}][value1]", type=int
-                            )
+                        criterion_val = request.args.get(
+                            f"{base_param}[{criterion_num}][value1]", type=float
+                        )
                     elif criterion_type == "string":
                         criterion_val = request.args.get(
                             f"{base_param}[{criterion_num}][value1]", type=str
@@ -163,11 +172,11 @@ def process_criteria(
                     if criterion_type == "string":
                         if "!" in criterion_cond:
                             query_terms.append(
-                                f"({criterion_col} is not null or {criterion_col} != '')"
+                                f"({criterion_col} is not null or {criterion_col}::text != '')"
                             )
                         else:
                             query_terms.append(
-                                f"({criterion_col} is null or {criterion_col} = '')"
+                                f"({criterion_col} is null or {criterion_col}::text = '')"
                             )
                     elif criterion_type == "num":
                         if "!" in criterion_cond:
@@ -184,9 +193,9 @@ def process_criteria(
                     )
                     if criterion_val is not None:
                         if "!" in criterion_cond:
-                            query_terms.append(f"lower({criterion_col}) not like lower(%s)")
+                            query_terms.append(f"lower({criterion_col}::text) not like lower(%s)")
                         else:
-                            query_terms.append(f"lower({criterion_col}) like lower(%s)")
+                            query_terms.append(f"lower({criterion_col}::text) like lower(%s)")
 
                         if "starts" in criterion_cond:
                             query_params.append(f"{criterion_val}%")

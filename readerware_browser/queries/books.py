@@ -68,7 +68,7 @@ def get_books(
     query = get_book_query_base() + " SELECT * from books"
 
     query_terms = []
-    query_params: list[str | int] = []
+    query_params: list[str | int | float] = []
 
     if author_id is not None:
         query_terms.append("author_id = %s")
@@ -100,8 +100,6 @@ def get_books(
         query += ")"
 
     query += build_sort(request)
-
-    print(query, query_params)
 
     db_cursor.execute(query=query, params=query_params)
     return cast(list[Book], db_cursor.fetchall())

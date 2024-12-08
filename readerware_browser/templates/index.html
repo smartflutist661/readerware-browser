@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<p>Go to <a href={{ url_for('books') }}>Books</a> to view a list of books.</p>
-<p>Go to <a href={{ url_for('authors') }}>Authors</a> to view a list of authors.</p>
-<p>Go to <a href={{ url_for('series') }}>Series</a> to view a list of series.</p>
+<div class="index">
+	<img src="{{ url_for('static', filename='logo.png') }}" />
+	<p>Go to <a href={{ url_for('books') }}>Books</a> to view a list of books.</p>
+	<p>Go to <a href={{ url_for('authors') }}>Authors</a> to view a list of authors.</p>
+	<p>Go to <a href={{ url_for('series') }}>Series</a> to view a list of series.</p>
+</div>
 {% endblock %}
 
 {% block scripts %}{% endblock %}

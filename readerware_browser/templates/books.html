@@ -47,7 +47,7 @@
 					{data: "title", searchBuilderType: "string"},
 					{
 						data: function (row, _, __, ___) {
-							return "<a href={{ url_for('author') }}?id=" + row.author_id + ">" + row.author + "</a>"
+							return "<a href={{ url_for('authors') }}?id=" + row.author_id + ">" + row.author + "</a>"
 						}, searchBuilderType: "string",
 					},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
@@ -82,7 +82,7 @@
 				drawCallback: function (settings) {
 					$('#books tbody tr').click(function () {
 						var id = table.row(this).data().book_id
-						document.location.href = '/book?id=' + id
+						document.location.href = "{{ url_for('books') }}?id=" + id
 					})
 
 				}

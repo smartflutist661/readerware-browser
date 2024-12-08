@@ -32,7 +32,7 @@
 					{data: "series", searchBuilderType: "string"},
 					{
 						data: function (row, _, __, ___) {
-							return "<a href={{ url_for('author') }}?id=" + row.author_id + ">" + row.author + "</a>"
+							return "<a href={{ url_for('authors') }}?id=" + row.author_id + ">" + row.author + "</a>"
 						}, searchBuilderType: "string",
 					},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},

@@ -40,25 +40,11 @@ def index() -> str:
 
 
 @APP.route("/books")
-def books() -> str:
-    return render_template("books.html", title="Books")
-
-
-@APP.route("/authors")
-def authors() -> str:
-    return render_template("authors.html", title="Authors")
-
-
-@APP.route("/serieses")
-def serieses() -> str:
-    return render_template("serieses.html", title="Series")
-
-
-@APP.route("/book")
-def book() -> str | Response:
+def books() -> str | Response:
     book_id = request.args.get("id", type=int)
+
     if book_id is None:
-        return Response(f"Book with id {book_id} not found", 404)
+        return render_template("books.html", title="Books")
 
     with CONN.cursor() as cur:
         book_res = get_book(book_id, cur)
@@ -68,6 +54,47 @@ def book() -> str | Response:
 
     return render_template(
         "book.html", title=f"{book_res['title']} - {book_res['author']}", book=book_res
+    )
+
+
+@APP.route("/authors")
+def authors() -> str | Response:
+    author_id = request.args.get("id", type=int)
+    if author_id is None:
+        return render_template("authors.html", title="Authors")
+
+    with CONN.cursor() as cur:
+        author_res = get_author(author_id, cur)
+
+    if author_res is None:
+        return Response(f"Author with id {author_id} not found", 404)
+
+    return render_template(
+        "books.html",
+        title=f"{author_res['author']}",
+        author_id=author_id,
+        series_id=None,
+    )
+
+
+@APP.route("/series")
+def series() -> str | Response:
+    series_id = request.args.get("id", type=int)
+
+    if series_id is None:
+        return render_template("serieses.html", title="Series")
+
+    with CONN.cursor() as cur:
+        series_res = get_series(series_id, cur)
+
+    if series_res is None:
+        return Response(f"Series with id {series_id} not found", 404)
+
+    return render_template(
+        "books.html",
+        title=f"Series: {series_res['series']} - {series_res['author']}",
+        series_id=series_id,
+        author_id=None,
     )
 
 
@@ -101,46 +128,6 @@ def books_data() -> BooksResponse | Response:
         "recordsTotal": total_books,
         "draw": request.args.get("draw", type=int),
     }
-
-
-@APP.route("/author")
-def author() -> str | Response:
-    author_id = request.args.get("id", type=int)
-    if author_id is None:
-        return Response("Author ID not in request", 400)
-
-    with CONN.cursor() as cur:
-        author_res = get_author(author_id, cur)
-
-    if author_res is None:
-        return Response(f"Author with id {author_id} not found", 404)
-
-    return render_template(
-        "books.html",
-        title=f"{author_res['author']}",
-        author_id=author_id,
-        series_id=None,
-    )
-
-
-@APP.route("/series")
-def series() -> str | Response:
-    series_id = request.args.get("id", type=int)
-    if series_id is None:
-        return Response("Series ID not in request", 400)
-
-    with CONN.cursor() as cur:
-        series_res = get_series(series_id, cur)
-
-    if series_res is None:
-        return Response(f"Series with id {series_id} not found", 404)
-
-    return render_template(
-        "books.html",
-        title=f"Series: {series_res['series']} - {series_res['author']}",
-        series_id=series_id,
-        author_id=None,
-    )
 
 
 @APP.route("/api/authors")

@@ -82,7 +82,7 @@
 				drawCallback: function (settings) {
 					$('#authors tbody tr').click(function () {
 						var id = table.row(this).data().author_id
-						document.location.href = '/author?id=' + id
+						document.location.href = "{{ url_for('authors') }}?id=" + id
 					})
 
 				}

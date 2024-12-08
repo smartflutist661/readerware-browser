@@ -2,12 +2,29 @@
 name = "readerware-browser"
 readme = "README.md"
 version = "0.0.0.dev0"
+requires-python = ">=3.10"
 
 dependencies = [
     "flask~=3.0",
     "psycopg~=3.2",
-    "python-dotenv~=1.0"
+    "python-dotenv~=1.0",
 ]
+
+[dependency-groups]
+dev = [
+  "black",
+  "flake8-print>=5",
+  "isort",
+  "mypy",
+  "pylint",
+  "pytest",
+]
+
+[project.scripts]
+test-app = "readerware_browser.__main__:main"
+
+[tool.uv]
+package = true
 
 [tool.isort]
 profile = "black"

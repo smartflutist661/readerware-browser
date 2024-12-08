@@ -1,0 +1,10 @@
+#!/bin/bash
+
+isort .
+black .
+flake8 --select T201 readerware_browser
+pylint -d C,R readerware_browser
+pylint -d C,R tests
+mypy -p readerware_browser
+mypy -p tests
+pytest

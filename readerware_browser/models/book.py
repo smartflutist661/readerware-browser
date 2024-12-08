@@ -1,15 +1,19 @@
-from typing import (
-    TypedDict,
-    TypeVar,
-)
-
-T = TypeVar("T")
+from typing import TypedDict
 
 
 class Book(TypedDict):
+    book_id: int
     title: str
     title_sort: str
     author: str
     author_sort: str
     page_count: int
     cover: str
+    genre: str
+    subgenre_1: str
+    subgenre_2: str
+    series: str
+    series_number: float
+    series_number_chron: int
+    subseries: str
+    subseries_number: int

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table id="authors">
+	<thead>
+		<tr>
+			<th>Author ID</th>
+			<th>Author</th>
+			<th>Book Count</th>
+			<th>Series Count</th>
+			<th>Total Pages</th>
+			<th>Series</th>
+			<th>Genres</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	$(document).ready(function () {
+		var table = $('#authors').DataTable(
+			{
+				ajax: "api/authors",
+				serverSide: true,
+				lengthChange: true,
+				columns: [
+					{data: "author_id", visible: false, searchable: false, orderable: false},
+					{data: "author", searchBuilderType: "string"},
+					{data: "book_count", searchable: false, searchBuilderType: "num"},
+					{data: "series_count", searchable: false, searchBuilderType: "num"},
+					{data: "page_count", searchable: false, searchBuilderType: "num"},
+					{data: "serieses", searchBuilderType: "string"},
+					{data: "genres", searchBuilderType: "string"},
+				],
+				order: {
+					name: 'author',
+					dir: 'asc'
+				},
+				layout: {
+					top: {
+						searchBuilder: {
+							columns: [1, 2, 3, 4, 5, 6, 7],
+							greyscale: true,
+						}
+					}
+				},
+				language: {
+					searchBuilder: {title: "<h3>Advanced Search</h3>"}
+				},
+				// Link row to book page
+				drawCallback: function (settings) {
+					$('#authors tbody tr').click(function () {
+						var id = table.row(this).data().author_id
+						document.location.href = '/author?id=' + id
+					})
+
+				}
+			}
+		);
+	});
+</script>
+{% endblock %}

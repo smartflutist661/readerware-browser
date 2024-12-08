@@ -21,8 +21,15 @@ STRING_CONDITIONS = (
     "!null",
 )
 
-STRING_COLS = ("author", "title")
-NUM_COLS = ("page_count",)
+STRING_COLS = ("author", "title", "genre", "series", "subseries", "genres", "serieses")
+NUM_COLS = (
+    "page_count",
+    "series_number",
+    "subseries_number",
+    "series_number_chron",
+    "book_count",
+    "series_count",
+)
 
 NUM_CONDITIONS = (
     "=",
@@ -139,15 +146,17 @@ def process_criteria(
                     if criterion_type == "string":
                         if "!" in criterion_cond:
                             query_terms.append(
-                                f"({criterion_col} is not null or {criterion_col} != ''"
+                                f"({criterion_col} is not null or {criterion_col} != '')"
                             )
                         else:
-                            query_terms.append(f"({criterion_col} is null or {criterion_col} = ''")
+                            query_terms.append(
+                                f"({criterion_col} is null or {criterion_col} = '')"
+                            )
                     elif criterion_type == "num":
                         if "!" in criterion_cond:
-                            query_terms.append(f"({criterion_col} is not null")
+                            query_terms.append(f"{criterion_col} is not null")
                         else:
-                            query_terms.append(f"({criterion_col} is null")
+                            query_terms.append(f"{criterion_col} is null")
                 elif (
                     criterion_cond
                     in ("starts", "!starts", "contains", "!contains", "ends", "!ends")
@@ -193,8 +202,13 @@ def build_basic_search(search_param: str) -> tuple[str, tuple[str, ...]] | Respo
         return Response("Too many search terms", 400)
 
     query = " where " + " OR ".join(
-        ["lower(author) like lower(%s)"] * total_search_strings
-        + ["lower(title) like lower(%s)"] * total_search_strings
+        sum(
+            (
+                [f"lower({string_search_col}) like lower(%s)"] * total_search_strings
+                for string_search_col in STRING_COLS  # FIXME: This needs to be filtered by valid table columns
+            ),
+            [],
+        )
     )
-    query_params = search_strings * 2
+    query_params = search_strings * len(STRING_COLS)
     return query, tuple(query_params)

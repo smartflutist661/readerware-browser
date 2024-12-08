@@ -4,10 +4,17 @@
 <table id="books">
 	<thead>
 		<tr>
+			<th>Book ID</th>
 			<th data-dt-order="disable">Cover</th>
 			<th>Title</th>
 			<th>Author</th>
 			<th>Page Count</th>
+			<th>Genre</th>
+			<th>Series</th>
+			<th>Series Number</th>
+			<th>Series Number (Chronological)</th>
+			<th>Subseries</th>
+			<th>Subseries Number</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -18,11 +25,13 @@
 {% block scripts %}
 <script>
 	$(document).ready(function () {
-		$('#books').DataTable(
+		var table = $('#books').DataTable(
 			{
 				ajax: "api/books",
 				serverSide: true,
+				lengthChange: true,
 				columns: [
+					{data: "book_id", visible: false, searchable: false, orderable: false},
 					{
 						data: "cover", orderable: false, searchable: false, render: function (data, _, __, ___) {
 							var cell = data ? "<img src=data:image/png;base64," + data.replace(/[|\n\r]/gm, "") + " width=100px />" : "No Cover Available"
@@ -31,16 +40,22 @@
 					},
 					{data: "title", searchBuilderType: "string"},
 					{data: "author", searchBuilderType: "string"},
-					{data: "page_count", searchable: false, searchBuilderType: "num"}
+					{data: "page_count", searchable: false, searchBuilderType: "num"},
+					{data: "genre", searchBuilderType: "string"},
+					{data: "series", searchBuilderType: "string"},
+					{data: "series_number", searchBuilderType: "num"},
+					{data: "series_number_chron", searchBuilderType: "num"},
+					{data: "subseries", searchBuilderType: "string"},
+					{data: "subseries_number", searchBuilderType: "num"},
 				],
 				order: {
 					name: 'author',
 					dir: 'asc'
 				},
 				layout: {
-					topStart: {
+					top: {
 						searchBuilder: {
-							columns: [1, 2, 3],
+							columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
 							greyscale: true,
 						}
 					}
@@ -48,6 +63,14 @@
 				language: {
 					searchBuilder: {title: "<h3>Advanced Search</h3>"}
 				},
+				// Link row to book page
+				drawCallback: function (settings) {
+					$('#books tbody tr').click(function () {
+						var id = table.row(this).data().book_id
+						document.location.href = '/book?id=' + id
+					})
+
+				}
 			}
 		);
 	});

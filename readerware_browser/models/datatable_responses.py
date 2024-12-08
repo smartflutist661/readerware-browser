@@ -5,6 +5,7 @@ from typing import (
     TypeVar,
 )
 
+from readerware_browser.models.author import Author
 from readerware_browser.models.book import Book
 
 T = TypeVar("T")
@@ -18,4 +19,8 @@ class DataTableResponse(Generic[T], TypedDict):
 
 
 class BooksResponse(DataTableResponse[Book]):
+    pass
+
+
+class AuthorsResponse(DataTableResponse[Author]):
     pass

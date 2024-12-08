@@ -20,3 +20,4 @@ class Book(TypedDict):
     subseries: str
     subseries_number: int
     description: str
+    read_count: int

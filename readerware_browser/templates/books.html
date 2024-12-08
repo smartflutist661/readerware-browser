@@ -8,6 +8,7 @@
 			<th>Title</th>
 			<th>Author</th>
 			<th>Page Count</th>
+			<th>Read Count</th>
 			<th>Genre</th>
 			<th>Series</th>
 			<th>Series Number</th>
@@ -62,6 +63,7 @@
 						}
 					},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
+					{data: "read_count", searchable: false, searchBuilderType: "num"},
 					{data: "genre", searchBuilderType: "string"},
 					{
 						data: "series",
@@ -83,7 +85,7 @@
 				layout: {
 					top: {
 						searchBuilder: {
-							columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+							columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
 							greyscale: true,
 						}
 					}

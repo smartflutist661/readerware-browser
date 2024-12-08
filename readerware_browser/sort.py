@@ -14,6 +14,7 @@ SORT_COLS = (
     "book_count",
     "series_count",
     "series_length",
+    "read_count",
 )
 
 

@@ -10,19 +10,6 @@ from flask.wrappers import (
     Response,
 )
 
-STRING_CONDITIONS = (
-    "=",
-    "!=",
-    "starts",
-    "!starts",
-    "contains",
-    "!contains",
-    "ends",
-    "!ends",
-    "null",
-    "!null",
-)
-
 STRING_COLS = frozenset(
     {
         "author",
@@ -43,6 +30,20 @@ NUM_COLS = (
     "book_count",
     "series_count",
     "series_length",
+    "read_count",
+)
+
+STRING_CONDITIONS = (
+    "=",
+    "!=",
+    "starts",
+    "!starts",
+    "contains",
+    "!contains",
+    "ends",
+    "!ends",
+    "null",
+    "!null",
 )
 
 NUM_CONDITIONS = (

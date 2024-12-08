@@ -10,13 +10,12 @@ from flask.templating import render_template
 from psycopg.connection import Connection
 from psycopg.rows import dict_row
 
-load_dotenv()
+load_dotenv(Path(__file__).parents[1] / ".env")
 
 APP = Flask(__name__)
 
 
 def get_db_connection() -> Connection[dict[str, Any]]:
-
     conn = psycopg.connect(
         host=os.getenv("DB_HOST", "localhost"),
         port=int(os.getenv("DB_PORT", "5432")),

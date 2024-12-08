@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
-from typing import Any
+from typing import (
+    Any,
+    cast,
+)
 
 import psycopg
 from dotenv import load_dotenv
@@ -11,7 +14,11 @@ from flask.wrappers import Response
 from psycopg.connection import Connection
 from psycopg.rows import dict_row
 
+from readerware_browser.models.book import Book
+from readerware_browser.models.datatable_responses import BooksResponse
+from readerware_browser.pagination import paginate
 from readerware_browser.search import build_search
+from readerware_browser.sort import build_sort
 
 load_dotenv(Path(__file__).parents[1] / ".env")
 
@@ -40,12 +47,10 @@ def books() -> str:
     return render_template("books.html", title="Books")
 
 
-# TODO: TypedDict returns
-# TODO: Some functions
 # TODO: Define books, authors, series routes (min; both books/authors/series tables and individual book/author/series pages)
 # TODO: For authors/series summaries, include book count
 @APP.route("/api/books")
-def books_data() -> dict[str, list[dict[str, Any]] | int | None] | Response:
+def books_data() -> BooksResponse | Response:
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -69,41 +74,16 @@ def books_data() -> dict[str, list[dict[str, Any]] | int | None] | Response:
         query += search_string
         query_params.extend(search_params)
 
-    # sort
-    max_sort_cols = 3
-    sorts = []
-    for sort_col_num in range(max_sort_cols):
-        sort_col_index = request.args.get(f"order[{sort_col_num}][column]")
-        if sort_col_index is None and sort_col_num > 0:
-            break
-        sort_col_name = request.args.get(f"columns[{sort_col_index}][data]")
-        # Specify allowed sort parameters to prevent SQL injection
-        # Can't parameterize "order by"
-        if sort_col_name not in ("title", "author", "page_count") or sort_col_name == "author":
-            sort_col_name = "author_sort"
-        elif sort_col_name == "title":
-            sort_col_name = "title_sort"
-        sort_direction = request.args.get(f"order[{sort_col_num}][dir]")
-        if sort_direction not in ("asc", "desc"):
-            sort_direction = "asc"
-        sorts.append(f"{sort_col_name} {sort_direction}")
-    query += " order by " + ", ".join(sorts) + ";"
+    query += build_sort(request)
 
     cur.execute(query=query, params=query_params)
-    books_res = cur.fetchall()
+    books_res = cast(list[Book], cur.fetchall())
     cur.close()
     conn.close()
 
     total_filtered = len(books_res)
 
-    # pagination
-    start = request.args.get("start", type=int)
-    length = request.args.get("length", type=int)
-    if start is None:
-        start = 0
-    if length is None:
-        length = total_filtered
-    books_res = books_res[start : start + length]
+    books_res = paginate(request, books_res)
 
     # response
     return {

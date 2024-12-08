@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import cast
 
@@ -35,7 +36,15 @@ def get_bool_from_param(val: str) -> bool:
 
 @APP.route("/.well-known/acme-challenge/<token>")
 def certbot(token: str) -> str:
-    with open("/var/www/html/.well-known/acme-challenge/" + token, encoding="utf8") as token_file:
+    """
+    Route to answer a challenge from certbot
+    for Let's Encrypt SSL certficate creation/renewal
+    """
+    webroot = os.getenv("WEBROOT")
+    if webroot is None:
+        raise FileNotFoundError("WEBROOT not set in .env, unable to answer certbot challenge")
+
+    with open(f"{webroot}/.well-known/acme-challenge/" + token, encoding="utf8") as token_file:
         return token_file.read()
 
 

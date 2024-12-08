@@ -35,12 +35,12 @@ nav {
 	justify-content: center;
 	padding-top: 1em;
 	padding-bottom: 1em;
+	gap: 50px;
 }
 
 nav a {
 	color: #d64161;
 	font-size: 3em;
-	margin-left: 50px;
 	text-decoration: none;
 }
 

@@ -7,8 +7,11 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask.globals import request
 from flask.templating import render_template
+from flask.wrappers import Response
 from psycopg.connection import Connection
 from psycopg.rows import dict_row
+
+from readerware_browser.search import build_search
 
 load_dotenv(Path(__file__).parents[1] / ".env")
 
@@ -29,15 +32,20 @@ def get_db_connection() -> Connection[dict[str, Any]]:
 
 @APP.route("/")
 def index() -> str:
-    return render_template("index.html", title="Books")
+    return render_template("index.html", title="Home")
+
+
+@APP.route("/books")
+def books() -> str:
+    return render_template("books.html", title="Books")
 
 
 # TODO: TypedDict returns
 # TODO: Some functions
-# TODO: Define books, authors, series routes (min; both authors/series tables and individual author/series pages)
+# TODO: Define books, authors, series routes (min; both books/authors/series tables and individual book/author/series pages)
 # TODO: For authors/series summaries, include book count
-@APP.route("/api/data")
-def data() -> dict[str, list[dict[str, Any]] | int | None]:
+@APP.route("/api/books")
+def books_data() -> dict[str, list[dict[str, Any]] | int | None] | Response:
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -50,21 +58,16 @@ def data() -> dict[str, list[dict[str, Any]] | int | None]:
     ) as books_query_file:
         query = books_query_file.read()
 
-    query_params: list[str] = []
+    query_params: list[str | int] = []
 
-    # search
-    search = request.args.get("search[value]")
-
-    if search != "" and search is not None:
-        print(search, type(search))
-        search_strings = [f"%{search_string}%" for search_string in search.split()]
-        total_search_strings = len(search_strings)
-        if total_search_strings > 10:
-            raise ValueError("Too many search strings")
-        query += " where " + " OR ".join(
-            ["author like %s"] * total_search_strings + ["title like %s"] * total_search_strings
-        )
-        query_params += search_strings * 2
+    search = build_search(request)
+    print(search)
+    if isinstance(search, Response):
+        return search
+    if search is not None:
+        search_string, search_params = search
+        query += search_string
+        query_params.extend(search_params)
 
     # sort
     max_sort_cols = 3
@@ -87,11 +90,11 @@ def data() -> dict[str, list[dict[str, Any]] | int | None]:
     query += " order by " + ", ".join(sorts) + ";"
 
     cur.execute(query=query, params=query_params)
-    books = cur.fetchall()
+    books_res = cur.fetchall()
     cur.close()
     conn.close()
 
-    total_filtered = len(books)
+    total_filtered = len(books_res)
 
     # pagination
     start = request.args.get("start", type=int)
@@ -100,11 +103,11 @@ def data() -> dict[str, list[dict[str, Any]] | int | None]:
         start = 0
     if length is None:
         length = total_filtered
-    books = books[start : start + length]
+    books_res = books_res[start : start + length]
 
     # response
     return {
-        "data": books,
+        "data": books_res,
         "recordsFiltered": total_filtered,
         "recordsTotal": total_books,
         "draw": request.args.get("draw", type=int),

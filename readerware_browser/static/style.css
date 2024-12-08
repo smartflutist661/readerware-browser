@@ -1,7 +1,8 @@
 table {
 	border-collapse: separate !important;
 	border-spacing: 0 10px !important;
-	margin-top: -10px; /* correct offset on first border spacing if desired */
+	margin-top: -10px;
+	/* correct offset on first border spacing if desired */
 }
 
 td {
@@ -21,4 +22,11 @@ td:last-child {
 	border-right-style: solid;
 	border-bottom-right-radius: 10px;
 	border-top-right-radius: 10px;
+}
+
+nav a {
+	color: #d64161;
+	font-size: 3em;
+	margin-left: 50px;
+	text-decoration: none;
 }

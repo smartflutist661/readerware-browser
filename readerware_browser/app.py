@@ -33,6 +33,12 @@ def get_bool_from_param(val: str) -> bool:
     return bool(json.loads(val.lower()))
 
 
+@APP.route("/.well-known/acme-challenge/<token>")
+def certbot(token: str) -> str:
+    with open(".well-known/acme-challenge/" + token, encoding="utf8") as token_file:
+        return token_file.read()
+
+
 @APP.route("/")
 def index() -> str:
     return render_template("index.html", title="Home")

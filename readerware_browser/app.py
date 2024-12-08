@@ -105,8 +105,8 @@ def series() -> str | Response:
 
 
 # TODO: These are pretty duplicative, could probably simplify by passing type-ish of request
-# TODO: Format, link, concatenate multiple authors, series, genres
-# Sort these internally? Series by favorite, authors alph for series, order for books
+# TODO: Format, link, concatenate multiple authors
+# TODO: Cover collages for authors/series?
 @APP.route("/api/books")
 def books_data() -> BooksResponse | Response:
 

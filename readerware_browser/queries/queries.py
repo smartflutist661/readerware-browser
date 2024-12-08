@@ -37,10 +37,11 @@ def get_by_id(
     return cast(Optional[Book], db_cursor.execute(query, [query_id]).fetchone())
 
 
-def get_author_series_queries(
+def get_base_query_params(
     query_type: QueryType,
     author_id: Optional[int],
     series_id: Optional[int],
+    unread: Optional[bool],
 ) -> tuple[tuple[str, ...], tuple[str | int | float, ...]]:
     query_terms = []
     query_params = []
@@ -61,6 +62,10 @@ def get_author_series_queries(
             query_terms.append("series_id = %s")
             query_params.append(series_id)
 
+    if unread is True:
+        query_terms.append("read_count = %s")
+        query_params.append(0)
+
     return tuple(query_terms), tuple(query_params)
 
 
@@ -69,10 +74,11 @@ def get_total(
     db_cursor: Cursor[dict[str, Any]],
     author_id: Optional[int],
     series_id: Optional[int],
+    unread: Optional[bool],
 ) -> int | Response:
     query = get_query_base(query_type) + f" SELECT count(*) as total from {query_type}"
 
-    query_terms, query_params = get_author_series_queries(query_type, author_id, series_id)
+    query_terms, query_params = get_base_query_params(query_type, author_id, series_id, unread)
 
     if len(query_terms) > 0:
         query += " where " + " AND ".join(query_terms)
@@ -90,11 +96,12 @@ def get_items(
     db_cursor: Cursor[dict[str, Any]],
     author_id: Optional[int],
     series_id: Optional[int],
+    unread: Optional[bool],
 ) -> list[Book] | list[Author] | list[Series] | Response:
 
     query = get_query_base(query_type) + f" SELECT * from {query_type}"
 
-    query_terms, query_params = get_author_series_queries(query_type, author_id, series_id)
+    query_terms, query_params = get_base_query_params(query_type, author_id, series_id, unread)
 
     if query_type == "books":
         valid_columns = Book.__annotations__.keys()

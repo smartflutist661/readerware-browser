@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import cast
 
@@ -28,6 +29,10 @@ APP = Flask(__name__)
 CONN = get_db_connection()
 
 
+def get_bool_from_param(val: str) -> bool:
+    return bool(json.loads(val.lower()))
+
+
 @APP.route("/")
 def index() -> str:
     return render_template("index.html", title="Home")
@@ -38,7 +43,11 @@ def books() -> str | Response:
     book_id = request.args.get("id", type=int)
 
     if book_id is None:
-        return render_template("books.html", title="Books")
+        return render_template(
+            "books.html",
+            title="Books",
+            unread=request.args.get("unread", type=get_bool_from_param),
+        )
 
     with CONN.cursor() as cur:
         book_res = get_by_id(book_id, "books", cur)
@@ -106,13 +115,14 @@ def data() -> BooksResponse | AuthorsResponse | SeriesResponse | Response:
     query_type = cast(QueryType, request.args.get("query_type", type=str))
     author_id = request.args.get("author_id", type=int)
     series_id = request.args.get("series_id", type=int)
+    unread = request.args.get("unread", type=get_bool_from_param)
 
     with CONN.cursor() as cur:
-        total_books = get_total(query_type, cur, author_id, series_id)
+        total_books = get_total(query_type, cur, author_id, series_id, unread)
         if isinstance(total_books, Response):
             return total_books
 
-        filtered_items = get_items(request, query_type, cur, author_id, series_id)
+        filtered_items = get_items(request, query_type, cur, author_id, series_id, unread)
 
     if isinstance(filtered_items, Response):
         return filtered_items

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table id="series">
+	<thead>
+		<tr>
+			<th>Series ID</th>
+			<th>Series</th>
+			<th>Author</th>
+			<th>Page Count</th>
+			<th>Genre</th>
+			<th>Series Length</th>
+			<th>Subseries</th>
+			<th>Owned Books</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	$(document).ready(function () {
+		var table = $('#series').DataTable(
+			{
+				ajax: "api/series",
+				serverSide: true,
+				lengthChange: true,
+				columns: [
+					{data: "series_id", visible: false, searchable: false, orderable: false},
+					{data: "series", searchBuilderType: "string"},
+					{
+						data: function (row, _, __, ___) {
+							return "<a href={{ url_for('author') }}?id=" + row.author_id + ">" + row.author + "</a>"
+						}, searchBuilderType: "string",
+					},
+					{data: "page_count", searchable: false, searchBuilderType: "num"},
+					{data: "genre", searchBuilderType: "string"},
+					{data: "series_length", searchBuilderType: "num"},
+					{data: "subserieses", searchBuilderType: "string"},
+					{data: "book_count", searchBuilderType: "num"},
+				],
+				order: {
+					name: 'author',
+					dir: 'asc'
+				},
+				layout: {
+					top: {
+						searchBuilder: {
+							columns: [1, 2, 3, 4, 5, 6, 7, 8],
+							greyscale: true,
+						}
+					}
+				},
+				language: {
+					searchBuilder: {title: "<h3>Advanced Search</h3>"}
+				},
+				// Link row to book page
+				drawCallback: function (settings) {
+					$('#series tbody tr').click(function () {
+						var id = table.row(this).data().series_id
+						document.location.href = '/series?id=' + id
+					})
+
+				}
+			}
+		);
+	});
+</script>
+{% endblock %}

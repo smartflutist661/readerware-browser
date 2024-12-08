@@ -9,6 +9,7 @@ from flask.wrappers import Response
 from readerware_browser.models.datatable_responses import (
     AuthorsResponse,
     BooksResponse,
+    SeriesResponse,
 )
 from readerware_browser.pagination import paginate
 from readerware_browser.queries.authors import (
@@ -18,8 +19,13 @@ from readerware_browser.queries.authors import (
 from readerware_browser.queries.books import (
     get_book,
     get_books,
+    get_total_books,
 )
 from readerware_browser.queries.db_connection import get_db_connection
+from readerware_browser.queries.series import (
+    get_series,
+    get_serieses,
+)
 
 load_dotenv(Path(__file__).parents[1] / ".env")
 
@@ -43,6 +49,11 @@ def authors() -> str:
     return render_template("authors.html", title="Authors")
 
 
+@APP.route("/serieses")
+def serieses() -> str:
+    return render_template("serieses.html", title="Series")
+
+
 @APP.route("/book")
 def book() -> str | Response:
     book_id = request.args.get("id", type=int)
@@ -60,17 +71,21 @@ def book() -> str | Response:
     )
 
 
-# TODO: Define books, authors, series routes (min; both books/authors/series tables and individual book/author/series pages)
-# TODO: For authors/series summaries, include book count
 # TODO: These are pretty duplicative, could probably simplify by passing type-ish of request
+# TODO: Format, link, concatenate multiple authors, series, genres
+# Sort these internally? Series by favorite, authors alph for series, order for books
 @APP.route("/api/books")
 def books_data() -> BooksResponse | Response:
-    with CONN.cursor() as cur:
-        total_res = cur.execute("select count(*) as total_books from readerware;").fetchone()
-        if total_res is not None:
-            total_books = total_res["total_books"]
 
-        filtered_books = get_books(request, cur)
+    author_id = request.args.get("author_id", type=int)
+    series_id = request.args.get("series_id", type=int)
+
+    with CONN.cursor() as cur:
+        total_books = get_total_books(cur, author_id, series_id)
+        if isinstance(total_books, Response):
+            return total_books
+
+        filtered_books = get_books(request, cur, author_id, series_id)
 
     if isinstance(filtered_books, Response):
         return filtered_books
@@ -90,11 +105,9 @@ def books_data() -> BooksResponse | Response:
 
 @APP.route("/author")
 def author() -> str | Response:
-    # TODO: Instead of loading an "author page" (what would it display?),
-    # send to pre-filtered version of books table somehow?
     author_id = request.args.get("id", type=int)
     if author_id is None:
-        return Response(f"Author with id {author_id} not found", 404)
+        return Response("Author ID not in request", 400)
 
     with CONN.cursor() as cur:
         author_res = get_author(author_id, cur)
@@ -102,7 +115,32 @@ def author() -> str | Response:
     if author_res is None:
         return Response(f"Author with id {author_id} not found", 404)
 
-    return render_template("author.html", title=f"{author_res['author']}", book=author_res)
+    return render_template(
+        "books.html",
+        title=f"{author_res['author']}",
+        author_id=author_id,
+        series_id=None,
+    )
+
+
+@APP.route("/series")
+def series() -> str | Response:
+    series_id = request.args.get("id", type=int)
+    if series_id is None:
+        return Response("Series ID not in request", 400)
+
+    with CONN.cursor() as cur:
+        series_res = get_series(series_id, cur)
+
+    if series_res is None:
+        return Response(f"Series with id {series_id} not found", 404)
+
+    return render_template(
+        "books.html",
+        title=f"Series: {series_res['series']} - {series_res['author']}",
+        series_id=series_id,
+        author_id=None,
+    )
 
 
 @APP.route("/api/authors")
@@ -132,5 +170,36 @@ def authors_data() -> AuthorsResponse | Response:
         "data": paginated_authors,
         "recordsFiltered": total_filtered,
         "recordsTotal": total_authors,
+        "draw": request.args.get("draw", type=int),
+    }
+
+
+@APP.route("/api/series")
+def series_data() -> SeriesResponse | Response:
+    with CONN.cursor() as cur:
+        total_res = cur.execute(
+            """
+        select count(distinct readerware.series) as total_series
+        from readerware
+        join series_list on series_list.rowkey = readerware.series;
+        """  # Join filter to prevent series with no books
+        ).fetchone()
+        if total_res is not None:
+            total_series = total_res["total_series"]
+
+        filtered_series = get_serieses(request, cur)
+
+    if isinstance(filtered_series, Response):
+        return filtered_series
+
+    total_filtered = len(filtered_series)
+
+    paginated_series = paginate(request, filtered_series)
+
+    # response
+    return {
+        "data": paginated_series,
+        "recordsFiltered": total_filtered,
+        "recordsTotal": total_series,
         "draw": request.args.get("draw", type=int),
     }

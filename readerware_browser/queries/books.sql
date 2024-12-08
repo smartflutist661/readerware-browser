@@ -5,12 +5,15 @@ WITH books AS (
         regexp_replace(title, '^The |^A | ^An ', '') as title_sort,
         cont1.name as author,
         cont1.sort_name as author_sort,
+        cont1.rowkey as author_id,
         cast(pages as integer) as page_count,
         encode(thumb_images.image_data, 'base64') as cover,
         cat1.listitem as genre,
         cat2.listitem as subgenre_1,
         cat3.listitem as subgenre_2,
         series_list.listitem as series,
+        regexp_replace(series_list.listitem, '^The |^A | ^An ', '') as series_sort,
+        series_list.rowkey as series_id,
         case
         	when series_list.listitem is null then null
         	else series_number
@@ -34,4 +37,3 @@ WITH books AS (
     left join series_list on series_list.rowkey = readerware.series
     where thumb_images.image_index = 0 or thumb_images.image_index is null
 )
-SELECT * from books

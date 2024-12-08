@@ -11,29 +11,29 @@ from flask.wrappers import (
 )
 from psycopg.cursor import Cursor
 
-from readerware_browser.models.author import Author
+from readerware_browser.models.series import Series
 from readerware_browser.search import build_search
 from readerware_browser.sort import build_sort
 
 # TODO: This is nearly identical to `books`, probably simplify
-VALID_COLUMNS = Author.__annotations__.keys()
+VALID_COLUMNS = Series.__annotations__.keys()
 
 
-def get_author_query_base() -> str:
-    with (Path(__file__).parent / "authors.sql").open(encoding="utf8") as authors_query_file:
-        return authors_query_file.read()
+def get_series_query_base() -> str:
+    with (Path(__file__).parent / "serieses.sql").open(encoding="utf8") as series_query_file:
+        return series_query_file.read()
 
 
-def get_author(author_id: int, db_cursor: Cursor[dict[str, Any]]) -> Optional[Author]:
-    query = get_author_query_base()
-    query += " where author_id = %s;"
+def get_series(series_id: int, db_cursor: Cursor[dict[str, Any]]) -> Optional[Series]:
+    query = get_series_query_base()
+    query += " where series_id = %s;"
 
-    return cast(Optional[Author], db_cursor.execute(query, [author_id]).fetchone())
+    return cast(Optional[Series], db_cursor.execute(query, [series_id]).fetchone())
 
 
-def get_authors(request: Request, db_cursor: Cursor[dict[str, Any]]) -> list[Author] | Response:
+def get_serieses(request: Request, db_cursor: Cursor[dict[str, Any]]) -> list[Series] | Response:
 
-    query = get_author_query_base()
+    query = get_series_query_base()
 
     query_params: list[str | int] = []
 
@@ -48,4 +48,4 @@ def get_authors(request: Request, db_cursor: Cursor[dict[str, Any]]) -> list[Aut
     query += build_sort(request)
 
     db_cursor.execute(query=query, params=query_params)
-    return cast(list[Author], db_cursor.fetchall())
+    return cast(list[Series], db_cursor.fetchall())

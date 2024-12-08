@@ -27,14 +27,14 @@ def build_sort(request: Request) -> str:
         sort_col_name = request.args.get(f"columns[{sort_col_index}][data]")
         # Specify allowed sort parameters to prevent SQL injection
         # Can't parameterize "order by"
-        print(sort_col_name)
         if sort_col_name not in SORT_COLS or sort_col_name == "author":
             sort_col_name = "author_sort"
         elif sort_col_name == "title":
             sort_col_name = "title_sort"
+        elif sort_col_name == "series":
+            sort_col_name = "series_sort"
         sort_direction = request.args.get(f"order[{sort_col_num}][dir]")
         if sort_direction not in ("asc", "desc"):
             sort_direction = "asc"
         sorts.append(f"{sort_col_name} {sort_direction}")
-    print(sorts)
     return " order by " + ", ".join(sorts) + ";"

@@ -1,4 +1,6 @@
+from collections.abc import Collection
 from typing import (
+    AbstractSet,
     Literal,
     Optional,
 )
@@ -21,7 +23,18 @@ STRING_CONDITIONS = (
     "!null",
 )
 
-STRING_COLS = ("author", "title", "genre", "series", "subseries", "genres", "serieses")
+STRING_COLS = frozenset(
+    {
+        "author",
+        "title",
+        "genre",
+        "series",
+        "subseries",
+        "genres",
+        "serieses",
+        "subserieses",
+    }
+)
 NUM_COLS = (
     "page_count",
     "series_number",
@@ -29,6 +42,7 @@ NUM_COLS = (
     "series_number_chron",
     "book_count",
     "series_count",
+    "series_length",
 )
 
 NUM_CONDITIONS = (
@@ -47,12 +61,15 @@ NUM_CONDITIONS = (
 # TODO: This file could use a good cleanup
 
 
-def build_search(request: Request) -> Optional[tuple[str, tuple[str | int, ...]] | Response]:
+def build_search(
+    request: Request,
+    valid_columns: Collection[str],
+) -> Optional[tuple[str, tuple[str | int, ...]] | Response]:
 
     basic_search_param = request.args.get("search[value]")
     do_basic_search = basic_search_param != "" and basic_search_param is not None
     if do_basic_search:
-        res = build_basic_search(basic_search_param)  # type: ignore[arg-type] ## False positive, checked for None above
+        res = build_basic_search(basic_search_param, valid_columns)  # type: ignore[arg-type] ## False positive, checked for None above
         if isinstance(res, Response):
             return res
         basic_search_string, basic_search_params = res
@@ -81,7 +98,7 @@ def build_search(request: Request) -> Optional[tuple[str, tuple[str | int, ...]]
 
     if advanced_search_string != "":
         if not do_basic_search:
-            return f" where {advanced_search_string}", advanced_search_params
+            return advanced_search_string, advanced_search_params
         return (
             basic_search_string + " AND (" + advanced_search_string + ")",
             basic_search_params + advanced_search_params,
@@ -195,20 +212,29 @@ def process_criteria(
     return f" {join_logic} ".join(query_terms), tuple(query_params)
 
 
-def build_basic_search(search_param: str) -> tuple[str, tuple[str, ...]] | Response:
+def build_basic_search(
+    search_param: str,
+    valid_columns: AbstractSet[str],
+) -> tuple[str, tuple[str, ...]] | Response:
     search_strings = [f"%{search_string}%" for search_string in search_param.split()]
     total_search_strings = len(search_strings)
     if total_search_strings > 10:
         return Response("Too many search terms", 400)
 
-    query = " where " + " OR ".join(
-        sum(
-            (
-                [f"lower({string_search_col}) like lower(%s)"] * total_search_strings
-                for string_search_col in STRING_COLS  # FIXME: This needs to be filtered by valid table columns
-            ),
-            [],
+    search_cols = valid_columns & STRING_COLS
+
+    query = (
+        "("
+        + " OR ".join(
+            sum(
+                (
+                    [f"lower({string_search_col}::text) like lower(%s)"] * total_search_strings
+                    for string_search_col in search_cols
+                ),
+                [],
+            )
         )
+        + ")"
     )
-    query_params = search_strings * len(STRING_COLS)
+    query_params = search_strings * len(search_cols)
     return query, tuple(query_params)

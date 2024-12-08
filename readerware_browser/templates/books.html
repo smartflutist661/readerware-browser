@@ -27,7 +27,13 @@
 	$(document).ready(function () {
 		var table = $('#books').DataTable(
 			{
-				ajax: "api/books",
+				ajax: {
+					url: "api/books",
+					data: {
+						author_id: "{{ author_id }}",
+						series_id: "{{ series_id }}",
+					},
+				},
 				serverSide: true,
 				lengthChange: true,
 				columns: [
@@ -39,10 +45,19 @@
 						}
 					},
 					{data: "title", searchBuilderType: "string"},
-					{data: "author", searchBuilderType: "string"},
+					{
+						data: function (row, _, __, ___) {
+							return "<a href={{ url_for('author') }}?id=" + row.author_id + ">" + row.author + "</a>"
+						}, searchBuilderType: "string",
+					},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
 					{data: "genre", searchBuilderType: "string"},
-					{data: "series", searchBuilderType: "string"},
+					{
+						data: function (row, _, __, ___) {
+							var cell = row.series ? "<a href={{ url_for('series') }}?id=" + row.series_id + ">" + row.series + "</a>" : null
+							return cell
+						}, searchBuilderType: "string",
+					},
 					{data: "series_number", searchBuilderType: "num"},
 					{data: "series_number_chron", searchBuilderType: "num"},
 					{data: "subseries", searchBuilderType: "string"},

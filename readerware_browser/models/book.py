@@ -13,6 +13,8 @@ class Book(TypedDict):
     subgenre_1: str
     subgenre_2: str
     series: str
+    series_sort: str
+    series_id: int
     series_number: float
     series_number_chron: int
     subseries: str

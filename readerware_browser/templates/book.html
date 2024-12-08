@@ -2,6 +2,7 @@
 
 {% block content %}
 <img src="data:image/png;base64,{{ book['cover'] }}" />
+<h4>{{ book['title'] }} by <a href="{{ url_for('author') }}?id={{ book['author_id'] }}">{{ book['author'] }}</a></h4>
 {% endblock %}
 
 {% block scripts %}{% endblock %}

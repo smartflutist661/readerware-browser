@@ -8,5 +8,6 @@ class Author(TypedDict):
     page_count: int
     genres: list[str]
     serieses: list[str]
+    serieses_ids: list[int]
     book_count: int
     series_count: int

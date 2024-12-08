@@ -32,8 +32,36 @@
 					{data: "book_count", searchable: false, searchBuilderType: "num"},
 					{data: "series_count", searchable: false, searchBuilderType: "num"},
 					{data: "page_count", searchable: false, searchBuilderType: "num"},
-					{data: "serieses", searchBuilderType: "string"},
-					{data: "genres", searchBuilderType: "string"},
+					{
+						data: function (row, _, __, ___) {
+							if (!row.serieses) {
+								return null;
+							}
+							var cell = "<ul>";
+							for (const series_info of row.serieses.map((e, i) => ({series: e, series_id: row.serieses_ids[i]}))) {
+								cell += "<li><a href={{ url_for('series') }}?id=" + series_info.series_id + ">" + series_info.series + "</a></li>";
+							}
+							cell += "</ul>"
+							return cell;
+						},
+						orderable: false,
+						searchBuilderType: "string",
+					},
+					{
+						data: function (row, _, __, ___) {
+							if (!row.genres) {
+								return null;
+							}
+							var cell = "<ul>";
+							for (const genre of row.genres) {
+								cell += "<li>" + genre + "</li>";
+							}
+							cell += "</ul>"
+							return cell;
+						},
+						orderable: false,
+						searchBuilderType: "string",
+					},
 				],
 				order: {
 					name: 'author',

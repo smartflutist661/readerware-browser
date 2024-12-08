@@ -3,21 +3,24 @@ from pathlib import Path
 from typing import Any
 
 import psycopg
+from dotenv import load_dotenv
 from flask import Flask
 from flask.globals import request
 from flask.templating import render_template
 from psycopg.connection import Connection
 from psycopg.rows import dict_row
 
+load_dotenv()
+
 APP = Flask(__name__)
 
 
 def get_db_connection() -> Connection[dict[str, Any]]:
+
     conn = psycopg.connect(
-        # TODO: Populate server env vars or otherwise acquire connection info
-        # dotenv?
-        host="localhost",
-        dbname="test",
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "5432")),
+        dbname=os.environ["DB_NAME"],
         user=os.environ["DB_USERNAME"],
         password=os.environ["DB_PASSWORD"],
         row_factory=dict_row,

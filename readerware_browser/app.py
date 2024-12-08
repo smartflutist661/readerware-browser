@@ -82,7 +82,7 @@ def series() -> str | Response:
     series_id = request.args.get("id", type=int)
 
     if series_id is None:
-        return render_template("serieses.html", title="Series")
+        return render_template("series.html", title="Series")
 
     with CONN.cursor() as cur:
         series_res = get_by_id(series_id, "series", cur)

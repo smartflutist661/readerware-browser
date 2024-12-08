@@ -98,12 +98,12 @@ def get_items(
 
     if query_type == "books":
         valid_columns = Book.__annotations__.keys()
-
-    if query_type == "authors":
+    elif query_type == "authors":
         valid_columns = Author.__annotations__.keys()
-
-    if query_type == "series":
+    elif query_type == "series":
         valid_columns = Series.__annotations__.keys()
+    else:
+        raise ValueError(f"Unrecognized query type {query_type}, unable to retrieve valid columns")
 
     search = build_search(request, valid_columns)
     if isinstance(search, Response):

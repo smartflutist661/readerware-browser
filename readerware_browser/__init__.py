@@ -1,1 +1,1 @@
-from readerware_browser.__main__ import APP
+from readerware_browser.app import APP

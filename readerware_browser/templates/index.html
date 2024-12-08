@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table id="data">
+	<thead>
+		<tr>
+			<th data-dt-order="disable">Cover</th>
+			<th>Title</th>
+			<th>Author</th>
+			<th>Page Count</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	$(document).ready(function () {
+		$('#data').DataTable(
+			{
+				ajax: "api/data",
+				serverSide: true,
+				columns: [
+					{
+						data: "cover", orderable: false, searchable: false, render: function (data, _, __, ___) {
+							return "<img src=data:image/png;base64," + data.replace(/[|\n\r]/gm, "") + " width=100px />";
+						}
+					},
+					{data: "title", searchBuilderType: "string"},
+					{data: "author", searchBuilderType: "string"},
+					{data: "page_count", searchable: false, searchBuilderType: "num"}
+				],
+				order: {
+					name: 'author',
+					dir: 'asc'
+				},
+				layout: {
+					topStart: {searchBuilder: {columns: [1, 2, 3]}}
+				},
+				language: {
+					searchBuilder: {title: "<h3>Advanced Search</h3>"}
+				},
+			}
+		);
+	});
+</script>
+{% endblock %}

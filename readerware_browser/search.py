@@ -158,9 +158,9 @@ def process_criteria(
                     )
                     if criterion_val is not None:
                         if "!" in criterion_cond:
-                            query_terms.append(f"{criterion_col} not like %s")
+                            query_terms.append(f"lower({criterion_col}) not like lower(%s)")
                         else:
-                            query_terms.append(f"{criterion_col} like %s")
+                            query_terms.append(f"lower({criterion_col}) like lower(%s)")
 
                         if "starts" in criterion_cond:
                             query_params.append(f"{criterion_val}%")
@@ -193,7 +193,8 @@ def build_basic_search(search_param: str) -> tuple[str, tuple[str, ...]] | Respo
         return Response("Too many search terms", 400)
 
     query = " where " + " OR ".join(
-        ["author like %s"] * total_search_strings + ["title like %s"] * total_search_strings
+        ["lower(author) like lower(%s)"] * total_search_strings
+        + ["lower(title) like lower(%s)"] * total_search_strings
     )
     query_params = search_strings * 2
     return query, tuple(query_params)

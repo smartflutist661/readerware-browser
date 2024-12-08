@@ -1,6 +1,6 @@
 WITH books AS (
     SELECT
-    	readerware.rowkey as book_id,
+    	readerware.rowkey as id,
         title,
         regexp_replace(title, '^The |^A | ^An ', '') as title_sort,
         cont1.name as author,

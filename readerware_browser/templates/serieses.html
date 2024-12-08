@@ -24,16 +24,19 @@
 	$(document).ready(function () {
 		var table = $('#series').DataTable(
 			{
-				ajax: "api/series",
+				ajax: {
+					url: "api/data",
+					data: {query_type: "series", }
+				},
 				serverSide: true,
 				lengthChange: true,
 				columns: [
-					{data: "series_id", visible: false, searchable: false, orderable: false},
+					{data: "id", visible: false, searchable: false, orderable: false},
 					{
 						data: "series",
 						searchBuilderType: "string",
 						render: function (_, __, row, ___) {
-							return "<a href={{ url_for('series') }}?id=" + row.series_id + ">" + row.series + "</a>"
+							return "<a href={{ url_for('series') }}?id=" + row.id + ">" + row.series + "</a>"
 						}
 					},
 					{

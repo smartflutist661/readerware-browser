@@ -19,7 +19,7 @@ genre_sorter as (
 ),
 authors AS (
     SELECT
-    	cont1.rowkey as author_id,
+    	cont1.rowkey as id,
         cont1.name as author,
         cont1.sort_name as author_sort,
         sum(cast(pages as integer)) as page_count,
@@ -34,4 +34,3 @@ authors AS (
     left join series_list on series_list.rowkey = readerware.series
     group by cont1.rowkey, cont1.name, cont1.sort_name
 )
-SELECT * from authors

@@ -23,16 +23,19 @@
 	$(document).ready(function () {
 		var table = $('#authors').DataTable(
 			{
-				ajax: "api/authors",
+				ajax: {
+					url: "api/data",
+					data: {query_type: "authors", }
+				},
 				serverSide: true,
 				lengthChange: true,
 				columns: [
-					{data: "author_id", visible: false, searchable: false, orderable: false},
+					{data: "id", visible: false, searchable: false, orderable: false},
 					{
 						data: "author",
 						searchBuilderType: "string",
 						render: function (_, __, row, ___) {
-							return "<a href={{ url_for('authors') }}?id=" + row.author_id + ">" + row.author + "</a>"
+							return "<a href={{ url_for('authors') }}?id=" + row.id + ">" + row.author + "</a>"
 						}
 					},
 					{data: "book_count", searchable: false, searchBuilderType: "num"},

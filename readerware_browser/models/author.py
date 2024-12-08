@@ -2,7 +2,7 @@ from typing import TypedDict
 
 
 class Author(TypedDict):
-    author_id: int
+    id: int
     author: str
     author_sort: str
     page_count: int

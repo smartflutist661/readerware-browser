@@ -2,7 +2,7 @@ from typing import TypedDict
 
 
 class Book(TypedDict):
-    book_id: int
+    id: int
     title: str
     title_sort: str
     author: str

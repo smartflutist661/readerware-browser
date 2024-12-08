@@ -31,8 +31,9 @@
 				lengthChange: true,
 				responsive: true,
 				ajax: {
-					url: "api/books",
+					url: "api/data",
 					data: {
+						query_type: "books",
 						author_id: "{{ author_id }}",
 						series_id: "{{ series_id }}",
 					},
@@ -44,7 +45,7 @@
 						searchable: false,
 						render: function (_, __, row, ___) {
 							return row.cover ?
-								"<a href={{ url_for('books') }}?id=" + row.book_id + "><img src=data:image/png;base64," + row.cover.replace(/[|\n\r]/gm, "") + " width=100px /></a>"
+								"<a href={{ url_for('books') }}?id=" + row.id + "><img src=data:image/png;base64," + row.cover.replace(/[|\n\r]/gm, "") + " width=100px /></a>"
 								: "No Cover Available"
 						}
 					},
@@ -52,7 +53,7 @@
 						data: "title",
 						searchBuilderType: "string",
 						render: function (_, __, row, ___) {
-							return "<a href={{ url_for('books') }}?id=" + row.book_id + ">" + row.title + "</a>"
+							return "<a href={{ url_for('books') }}?id=" + row.id + ">" + row.title + "</a>"
 						}
 					},
 					{

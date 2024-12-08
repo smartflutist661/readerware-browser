@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 
 from dotenv import load_dotenv
 from flask import Flask
@@ -12,19 +13,12 @@ from readerware_browser.models.datatable_responses import (
     SeriesResponse,
 )
 from readerware_browser.pagination import paginate
-from readerware_browser.queries.authors import (
-    get_author,
-    get_authors,
-)
-from readerware_browser.queries.books import (
-    get_book,
-    get_books,
-    get_total_books,
-)
 from readerware_browser.queries.db_connection import get_db_connection
-from readerware_browser.queries.series import (
-    get_series,
-    get_serieses,
+from readerware_browser.queries.queries import (
+    QueryType,
+    get_by_id,
+    get_items,
+    get_total,
 )
 
 load_dotenv(Path(__file__).parents[1] / ".env")
@@ -47,7 +41,7 @@ def books() -> str | Response:
         return render_template("books.html", title="Books")
 
     with CONN.cursor() as cur:
-        book_res = get_book(book_id, cur)
+        book_res = get_by_id(book_id, "books", cur)
 
     if book_res is None:
         return Response(f"Book with id {book_id} not found", 404)
@@ -70,7 +64,7 @@ def authors() -> str | Response:
         return render_template("authors.html", title="Authors")
 
     with CONN.cursor() as cur:
-        author_res = get_author(author_id, cur)
+        author_res = get_by_id(author_id, "authors", cur)
 
     if author_res is None:
         return Response(f"Author with id {author_id} not found", 404)
@@ -91,7 +85,7 @@ def series() -> str | Response:
         return render_template("serieses.html", title="Series")
 
     with CONN.cursor() as cur:
-        series_res = get_series(series_id, cur)
+        series_res = get_by_id(series_id, "series", cur)
 
     if series_res is None:
         return Response(f"Series with id {series_id} not found", 404)
@@ -104,95 +98,33 @@ def series() -> str | Response:
     )
 
 
-# TODO: These are pretty duplicative, could probably simplify by passing type-ish of request
 # TODO: Format, link, concatenate multiple authors
 # TODO: Cover collages for authors/series?
-@APP.route("/api/books")
-def books_data() -> BooksResponse | Response:
+@APP.route("/api/data")
+def data() -> BooksResponse | AuthorsResponse | SeriesResponse | Response:
 
+    query_type = cast(QueryType, request.args.get("query_type", type=str))
     author_id = request.args.get("author_id", type=int)
     series_id = request.args.get("series_id", type=int)
 
     with CONN.cursor() as cur:
-        total_books = get_total_books(cur, author_id, series_id)
+        total_books = get_total(query_type, cur, author_id, series_id)
         if isinstance(total_books, Response):
             return total_books
 
-        filtered_books = get_books(request, cur, author_id, series_id)
+        filtered_items = get_items(request, query_type, cur, author_id, series_id)
 
-    if isinstance(filtered_books, Response):
-        return filtered_books
+    if isinstance(filtered_items, Response):
+        return filtered_items
 
-    total_filtered = len(filtered_books)
+    total_filtered = len(filtered_items)
 
-    paginated_books = paginate(request, filtered_books)
+    paginated_items = paginate(request, filtered_items)  # type: ignore[misc]
 
     # response
     return {
-        "data": paginated_books,
+        "data": paginated_items,
         "recordsFiltered": total_filtered,
         "recordsTotal": total_books,
-        "draw": request.args.get("draw", type=int),
-    }
-
-
-@APP.route("/api/authors")
-def authors_data() -> AuthorsResponse | Response:
-    with CONN.cursor() as cur:
-        total_res = cur.execute(
-            """
-        select count(distinct readerware.author) as total_authors
-        from readerware
-        join contributor on contributor.rowkey = readerware.author;
-        """  # Join filter to prevent authors with no books
-        ).fetchone()
-        if total_res is not None:
-            total_authors = total_res["total_authors"]
-
-        filtered_authors = get_authors(request, cur)
-
-    if isinstance(filtered_authors, Response):
-        return filtered_authors
-
-    total_filtered = len(filtered_authors)
-
-    paginated_authors = paginate(request, filtered_authors)
-
-    # response
-    return {
-        "data": paginated_authors,
-        "recordsFiltered": total_filtered,
-        "recordsTotal": total_authors,
-        "draw": request.args.get("draw", type=int),
-    }
-
-
-@APP.route("/api/series")
-def series_data() -> SeriesResponse | Response:
-    with CONN.cursor() as cur:
-        total_res = cur.execute(
-            """
-        select count(distinct readerware.series) as total_series
-        from readerware
-        join series_list on series_list.rowkey = readerware.series;
-        """  # Join filter to prevent series with no books
-        ).fetchone()
-        if total_res is not None:
-            total_series = total_res["total_series"]
-
-        filtered_series = get_serieses(request, cur)
-
-    if isinstance(filtered_series, Response):
-        return filtered_series
-
-    total_filtered = len(filtered_series)
-
-    paginated_series = paginate(request, filtered_series)
-
-    # response
-    return {
-        "data": paginated_series,
-        "recordsFiltered": total_filtered,
-        "recordsTotal": total_series,
         "draw": request.args.get("draw", type=int),
     }

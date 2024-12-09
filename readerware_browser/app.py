@@ -1,7 +1,10 @@
 import json
 import os
 from pathlib import Path
-from typing import cast
+from typing import (
+    Optional,
+    cast,
+)
 
 from dotenv import load_dotenv
 from flask import Flask
@@ -25,13 +28,16 @@ from readerware_browser.queries.queries import (
 
 load_dotenv(Path(__file__).parents[1] / ".env")
 
-APP = Flask(__name__)
+APP: Flask = Flask(__name__)
 
 CONN = get_db_connection()
 
 
-def get_bool_from_param(val: str) -> bool:
-    return bool(json.loads(val.lower()))
+def get_bool_from_param(val: str) -> Optional[bool]:
+    opt = json.loads(val.lower())
+    if opt is None:
+        return None
+    return bool(opt)
 
 
 @APP.route("/.well-known/acme-challenge/<token>")
@@ -133,9 +139,9 @@ def data() -> BooksResponse | AuthorsResponse | SeriesResponse | Response:
     unread = request.args.get("unread", type=get_bool_from_param)
 
     with CONN.cursor() as cur:
-        total_books = get_total(query_type, cur, author_id, series_id, unread)
-        if isinstance(total_books, Response):
-            return total_books
+        total = get_total(query_type, cur, author_id, series_id, unread)
+        if isinstance(total, Response):
+            return total
 
         filtered_items = get_items(request, query_type, cur, author_id, series_id, unread)
 
@@ -150,6 +156,6 @@ def data() -> BooksResponse | AuthorsResponse | SeriesResponse | Response:
     return {
         "data": paginated_items,
         "recordsFiltered": total_filtered,
-        "recordsTotal": total_books,
+        "recordsTotal": total,
         "draw": request.args.get("draw", type=int),
     }

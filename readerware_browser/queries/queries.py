@@ -42,9 +42,9 @@ def get_base_query_params(
     author_id: Optional[int],
     series_id: Optional[int],
     unread: Optional[bool],
-) -> tuple[tuple[str, ...], tuple[str | int | float, ...]]:
+) -> tuple[list[str], list[str | int | float]]:
     query_terms = []
-    query_params = []
+    query_params: list[str | int | float] = []
 
     if author_id is not None:
         if query_type == "authors":
@@ -58,15 +58,22 @@ def get_base_query_params(
         if query_type == "series":
             query_terms.append("id = %s")
             query_params.append(series_id)
+        elif query_type == "authors":
+            query_terms.append("%s = ANY(serieses_ids)")
+            query_params.append(series_id)
         else:
             query_terms.append("series_id = %s")
             query_params.append(series_id)
 
-    if unread is True:
-        query_terms.append("read_count = %s")
+    # Ternary: None = all, True = unread, False = read
+    if unread is not None:
+        if unread is True:
+            query_terms.append("read_count = %s")
+        else:
+            query_terms.append("read_count > %s")
         query_params.append(0)
 
-    return tuple(query_terms), tuple(query_params)
+    return query_terms, query_params
 
 
 def get_total(
@@ -128,7 +135,7 @@ def get_items(
     if search is not None:
         search_string, search_params = search
         query += search_string
-        list(query_params).extend(search_params)
+        query_params.extend(search_params)
 
     if search is not None and len(query_terms) > 0:
         query += ")"

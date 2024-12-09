@@ -1,6 +1,12 @@
 {% extends "table.html" %}
 
 {% block table %}
+<select name="unread" id="unread">
+	<option selected value="null">All Books</option>
+	<option value="true">Unread Books</option>
+	<option value="false">Read Books</option>
+</select>
+
 <table id="books">
 	<thead>
 		<tr>
@@ -36,7 +42,9 @@
 						query_type: "books",
 						author_id: "{{ author_id }}",
 						series_id: "{{ series_id }}",
-						unread: "{{ unread }}",
+						unread: function () {
+							return $('#unread').val().toString();
+						},
 					},
 				},
 				columns: [
@@ -100,6 +108,10 @@
 
 		table.on('responsive-resize', function (_, __, ____) {
 			$('tr').each(function () {$(this).find('td:visible:last').addClass('last-visible-td')});
+		});
+
+		$('#unread').change(function () {
+			table.draw();
 		});
 	});
 

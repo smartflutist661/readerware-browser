@@ -72,7 +72,8 @@ tr a:hover {
 	justify-content: center;
 }
 
-.book h4, .book h5 {
+.book h4,
+.book h5 {
 	text-align: center;
 }
 
@@ -95,4 +96,9 @@ td ul {
 	justify-content: center;
 	text-align: center;
 	font-size: 32pt;
+}
+
+.attribution {
+	text-align: center;
+	font-size: x-small;
 }

@@ -36,15 +36,8 @@ You should pin the Python version your `wsgi_mod` is using, which can be found i
 Place a `wsgi-file` with the following contents in a folder the Apache daemon has access to, e.g. `/var/www/html`:
 
 ```
-import sys
-
-sys.path.insert(0, '</absolute/path/to/this/repo>')
-sys.path.insert(0, '</absolute/path/to/this/repo>/.venv/lib/python<version>/site-packages')
-
 from readerware_browser import APP as application
 ```
-
-The paths assume you have used `uv` to install dependencies.
 
 Enable the Apache WSGI module: `a2enmod wsgi`
 
@@ -57,6 +50,9 @@ Create a `readerware.conf` file in `/etc/apache2/sites-available/` with contents
 </VirtualHost>
 
 <VirtualHost *:443>
+        WSGIDaemonProcess books python-home=</absolute/path/to/this/repo>/.venv python-path=</absolute/path/to/this/repo>
+        WSGIProcessGroup books
+        WSGIApplicationGroup %{GLOBAL}
         WSGIScriptAlias / <your-webroot>/<wsgi-file>
         ServerName <your-server-domain>
 
@@ -75,6 +71,8 @@ Create a `readerware.conf` file in `/etc/apache2/sites-available/` with contents
         CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 ```
+
+The paths assume you have used `uv` to install dependencies.
 
 This configuration assumes you want to enable SSL and prevent plain HTTP connections.
 You may need to add `WEBROOT=<your-webroot>` to the `.env` file (default `/var/www/html`);
